@@ -49,7 +49,7 @@ function perform_test {
 			# sysctl has duplicities in output
 			# hide permission errors like: "sysctl: permission denied on key 'fs.protected_hardlinks'"
 			# kernel parameters might use "/" and "." separators interchangeably - normalizing
-			sysctl -a --deprecated 2> /dev/null | tr "/" "." | cut -d "=" -f 1 | tr -d " " | sort -u > "$sysctlNames"
+			sysctl -a --deprecated 2> /dev/null | tr "/" "." | cut -d "=" -f 1 | tr -d " " | sort -u > "$sysctlNames" || true
 			;;
 		*)
 			return 255
