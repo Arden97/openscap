@@ -53,6 +53,7 @@
 #include "filehash_probe.h"
 
 #define FILE_SEPARATOR '/'
+#define __ERRBUF_SIZE 128
 
 static int mem2hex (uint8_t *mem, size_t mlen, char *str, size_t slen)
 {
@@ -111,17 +112,20 @@ static int filehash_cb (const char *prefix, const char *p, const char *f, probe_
 
         /*
          * Open the file
+         *
+         * O_NONBLOCK ensures that open() does not block indefinitely when the
+         * target is a FIFO (named pipe) with no writer, or another special file
+         * whose open can block. For regular files O_NONBLOCK has no effect.
          */
 	if (prefix == NULL) {
-		fd = open(pbuf, O_RDONLY);
+		fd = open(pbuf, O_RDONLY | O_NONBLOCK);
 	} else {
 		char *path_with_prefix = oscap_path_join(prefix, pbuf);
-		fd = open(path_with_prefix, O_RDONLY);
+		fd = open(path_with_prefix, O_RDONLY | O_NONBLOCK);
 		free(path_with_prefix);
 	}
 
         if (fd < 0) {
-		#define __ERRBUF_SIZE 128
 		char errbuf[__ERRBUF_SIZE] = {0};
 		oscap_strerror_r(errno, errbuf, sizeof errbuf - 1);
 
@@ -136,6 +140,43 @@ static int filehash_cb (const char *prefix, const char *p, const char *f, probe_
 		probe_item_setstatus(itm, SYSCHAR_STATUS_ERROR);
 
        } else {
+                /*
+                 * Make sure we only try to hash regular files. Hashing a FIFO,
+                 * socket, device or other special file makes no sense and could
+                 * block the read. The type is checked on the already-opened
+                 * descriptor (fstat) to avoid a TOCTOU race with the open().
+                 */
+                struct stat st;
+                if (fstat(fd, &st) != 0) {
+                        char errbuf[__ERRBUF_SIZE] = {0};
+                        oscap_strerror_r(errno, errbuf, sizeof errbuf - 1);
+                        itm = probe_item_create(OVAL_INDEPENDENT_FILE_HASH, NULL,
+                                                "filepath", OVAL_DATATYPE_STRING, include_filepath ? pbuf : NULL,
+                                                "path",     OVAL_DATATYPE_STRING, p,
+                                                "filename", OVAL_DATATYPE_STRING, f,
+                                                NULL);
+                        probe_item_add_msg(itm, OVAL_MESSAGE_LEVEL_ERROR,
+                                "File \"%s\" status can't be read: %s", pbuf, errbuf);
+                        probe_item_setstatus(itm, SYSCHAR_STATUS_ERROR);
+
+                        probe_item_collect(ctx, itm);
+                        close(fd);
+                        return 0;
+                } else if (!S_ISREG(st.st_mode)) {
+                        itm = probe_item_create(OVAL_INDEPENDENT_FILE_HASH, NULL,
+                                                "filepath", OVAL_DATATYPE_STRING, include_filepath ? pbuf : NULL,
+                                                "path",     OVAL_DATATYPE_STRING, p,
+                                                "filename", OVAL_DATATYPE_STRING, f,
+                                                NULL);
+                        probe_item_add_msg(itm, OVAL_MESSAGE_LEVEL_ERROR,
+                                "File \"%s\" is not a regular file.", pbuf);
+                        probe_item_setstatus(itm, SYSCHAR_STATUS_ERROR);
+
+                        probe_item_collect(ctx, itm);
+                        close(fd);
+                        return 0;
+                }
+
                 uint8_t md5_dst[16];
                 size_t  md5_dstlen = sizeof md5_dst;
                 char    md5_str[(sizeof md5_dst * 2) + 1];
