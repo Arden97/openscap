@@ -422,7 +422,8 @@ xmlNode *oval_record_field_to_dom(struct oval_record_field *rf, bool parent_mask
 	root_node = xmlDocGetRootElement(doc);
 	name = oval_record_field_get_name(rf);
 	rf_mask = oval_record_field_get_mask(rf);
-	if (!xmlStrcmp(root_node->name, BAD_CAST OVAL_ROOT_ELM_RESULTS)
+	if ((!xmlStrcmp(root_node->name, BAD_CAST OVAL_ROOT_ELM_RESULTS) ||
+	     !xmlStrcmp(root_node->name, BAD_CAST OVAL_ROOT_ELM_SYSCHARS))
 	    && (rf_mask || parent_mask)) {
 		value = NULL;
 		masked = true;

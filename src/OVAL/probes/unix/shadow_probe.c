@@ -182,10 +182,51 @@ static void report_finding(struct result_info *res, probe_ctx *ctx)
         SEXP_free_r(&se_flg_mem);
 }
 
+static const char *strip_hash(const char *raw, char *buf, size_t buf_len)
+{
+	const char *p;
+	size_t prefix_len, prefix_with_id_len;
+
+	if (raw == NULL || *raw == '\0' ||
+		strcmp(raw, "!") == 0 || strcmp(raw, "!!") == 0 ||
+	    strcmp(raw, "*") == 0 || strcmp(raw, "*LK*") == 0 ||
+	    strcmp(raw, "x") == 0)
+		return raw;
+
+	p = raw;
+	prefix_len = 0;
+
+	/* crypt(3) hash ($id$salt$hash), keep lock prefix + method id ($id$) */
+	while (*p == '!')
+		p++, prefix_len++;
+
+	if (*p == '$') {
+		const char *id_end = strchr(p + 1, '$');
+		if (id_end != NULL) {
+			prefix_with_id_len = (size_t)(id_end + 1 - raw);
+			if (prefix_with_id_len < buf_len) {
+				memcpy(buf, raw, prefix_with_id_len);
+				buf[prefix_with_id_len] = '\0';
+				return buf;
+			}
+		}
+	}
+
+	/* locked account with non-crypt hash, keep lock prefix only */
+	if (prefix_len > 0 && prefix_len < buf_len) {
+		memcpy(buf, raw, prefix_len);
+		buf[prefix_len] = '\0';
+		return buf;
+	}
+
+	return "*";
+}
+
 static void _process_struct_shadow(struct spwd *sp, SEXP_t *un_ent, probe_ctx *ctx)
 {
         SEXP_t *un;
         struct result_info r;
+        char stripped[8];
 
 	dI("Have user: %s", sp->sp_namp);
 	un = SEXP_string_newf("%s", sp->sp_namp);
@@ -195,7 +236,7 @@ static void _process_struct_shadow(struct spwd *sp, SEXP_t *un_ent, probe_ctx *c
 	}
 
 	r.username = sp->sp_namp;
-	r.password = sp->sp_pwdp;
+	r.password = strip_hash(sp->sp_pwdp, stripped, sizeof(stripped));
 	r.chg_lst = sp->sp_lstchg;
 	r.chg_allow = sp->sp_min;
 	r.chg_req = sp->sp_max;
