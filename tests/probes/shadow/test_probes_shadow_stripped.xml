@@ -1,0 +1,139 @@
+<?xml version="1.0"?>
+<oval_definitions xmlns:oval-def="http://oval.mitre.org/XMLSchema/oval-definitions-5" xmlns:oval="http://oval.mitre.org/XMLSchema/oval-common-5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:unix-def="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5" xsi:schemaLocation="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix unix-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-definitions-5 oval-definitions-schema.xsd http://oval.mitre.org/XMLSchema/oval-common-5 oval-common-schema.xsd">
+
+  <generator>
+    <oval:product_name>shadow-stripped-test</oval:product_name>
+    <oval:product_version>1.0</oval:product_version>
+    <oval:schema_version>5.8</oval:schema_version>
+    <oval:timestamp>2026-09-23T00:00:00-00:00</oval:timestamp>
+  </generator>
+
+  <definitions>
+    <definition class="compliance" version="1" id="oval:1:def:1"> <!-- comment="true" -->
+      <metadata>
+        <title>SHA-512 hash is stripped</title>
+        <description>Password hash should be stripped to method prefix only</description>
+      </metadata>
+      <criteria>
+        <criterion test_ref="oval:1:tst:1"/>
+      </criteria>
+    </definition>
+
+    <definition class="compliance" version="1" id="oval:1:def:2"> <!-- comment="true" -->
+      <metadata>
+        <title>Locked account with hash is stripped</title>
+        <description>Locked account should keep lock prefix and method id</description>
+      </metadata>
+      <criteria>
+        <criterion test_ref="oval:1:tst:2"/>
+      </criteria>
+    </definition>
+
+    <definition class="compliance" version="1" id="oval:1:def:3"> <!-- comment="true" -->
+      <metadata>
+        <title>Locked account marker preserved</title>
+        <description>Simple lock marker should be kept as-is</description>
+      </metadata>
+      <criteria>
+        <criterion test_ref="oval:1:tst:3"/>
+      </criteria>
+    </definition>
+
+    <definition class="compliance" version="1" id="oval:1:def:4"> <!-- comment="true" -->
+      <metadata>
+        <title>Disabled account marker preserved</title>
+        <description>Disabled account marker should be kept as-is</description>
+      </metadata>
+      <criteria>
+        <criterion test_ref="oval:1:tst:4"/>
+      </criteria>
+    </definition>
+
+    <definition class="compliance" version="1" id="oval:1:def:5"> <!-- comment="true" -->
+      <metadata>
+        <title>Never-set password marker preserved</title>
+        <description>Double-bang marker should be kept as-is</description>
+      </metadata>
+      <criteria>
+        <criterion test_ref="oval:1:tst:5"/>
+      </criteria>
+    </definition>
+  </definitions>
+
+  <tests>
+    <shadow_test version="1" id="oval:1:tst:1" check="all" comment="true" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <object object_ref="oval:1:obj:1"/>
+      <state state_ref="oval:1:ste:1"/>
+    </shadow_test>
+
+    <shadow_test version="1" id="oval:1:tst:2" check="all" comment="true" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <object object_ref="oval:1:obj:2"/>
+      <state state_ref="oval:1:ste:2"/>
+    </shadow_test>
+
+    <shadow_test version="1" id="oval:1:tst:3" check="all" comment="true" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <object object_ref="oval:1:obj:3"/>
+      <state state_ref="oval:1:ste:3"/>
+    </shadow_test>
+
+    <shadow_test version="1" id="oval:1:tst:4" check="all" comment="true" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <object object_ref="oval:1:obj:4"/>
+      <state state_ref="oval:1:ste:4"/>
+    </shadow_test>
+
+    <shadow_test version="1" id="oval:1:tst:5" check="all" comment="true" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <object object_ref="oval:1:obj:5"/>
+      <state state_ref="oval:1:ste:5"/>
+    </shadow_test>
+  </tests>
+
+  <objects>
+    <shadow_object version="1" id="oval:1:obj:1" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>sha512user</username>
+    </shadow_object>
+
+    <shadow_object version="1" id="oval:1:obj:2" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>lockedhash</username>
+    </shadow_object>
+
+    <shadow_object version="1" id="oval:1:obj:3" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>lockednohash</username>
+    </shadow_object>
+
+    <shadow_object version="1" id="oval:1:obj:4" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>disabled</username>
+    </shadow_object>
+
+    <shadow_object version="1" id="oval:1:obj:5" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>neverset</username>
+    </shadow_object>
+  </objects>
+
+  <states>
+    <shadow_state version="1" id="oval:1:ste:1" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>sha512user</username>
+      <password>$6$</password>
+    </shadow_state>
+
+    <shadow_state version="1" id="oval:1:ste:2" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>lockedhash</username>
+      <password>!!$6$</password>
+    </shadow_state>
+
+    <shadow_state version="1" id="oval:1:ste:3" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>lockednohash</username>
+      <password>!</password>
+    </shadow_state>
+
+    <shadow_state version="1" id="oval:1:ste:4" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>disabled</username>
+      <password>*</password>
+    </shadow_state>
+
+    <shadow_state version="1" id="oval:1:ste:5" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
+      <username>neverset</username>
+      <password>!!</password>
+    </shadow_state>
+  </states>
+
+</oval_definitions>
