@@ -41,7 +41,7 @@
   <states>
     <shadow_state version="1" id="oval:1:ste:1" xmlns="http://oval.mitre.org/XMLSchema/oval-definitions-5#unix">
       <username>root</username>
-      <password>!locked</password>
+      <password>!</password>
       <chg_lst datatype="int">-1</chg_lst>
       <chg_allow datatype="int">0</chg_allow>
       <chg_req datatype="int">99999</chg_req>

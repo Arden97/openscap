@@ -189,8 +189,8 @@ static const char *strip_hash(const char *raw, char *buf, size_t buf_len)
 
 	if (raw == NULL || *raw == '\0' ||
 		strcmp(raw, "!") == 0 || strcmp(raw, "!!") == 0 ||
-	    strcmp(raw, "*") == 0 || strcmp(raw, "*LK*") == 0 ||
-	    strcmp(raw, "x") == 0)
+	    strcmp(raw, "!*") == 0 || strcmp(raw, "*") == 0 ||
+		strcmp(raw, "*LK*") == 0 || strcmp(raw, "x") == 0)
 		return raw;
 
 	p = raw;

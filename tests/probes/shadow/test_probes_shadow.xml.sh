@@ -9,7 +9,27 @@ function getField {
 	    echo $LINE | awk -F':' '{print $1}'
 	    ;;
 	'password' )
-	    echo $LINE | awk -F':' '{print $2}'
+	    local pwd=$(echo $LINE | awk -F':' '{print $2}')
+	    case "$pwd" in
+		''|'!'|'!!'|'!*'|'*'|'*LK*'|'x')
+		    echo "$pwd" ;;
+		*)
+		    local lock=""
+		    local rest="$pwd"
+		    while [ "${rest:0:1}" = "!" ]; do
+			    lock="${lock}!"
+			    rest="${rest:1}"
+		    done
+		    if [ "${rest:0:1}" = '$' ]; then
+			    local id_end=$(echo "$rest" | cut -d '$' -f1-2)
+			    echo "${lock}${id_end}\$"
+		    elif [ -n "$lock" ]; then
+			    echo "$lock"
+		    else
+			    echo "*"
+		    fi
+		    ;;
+	    esac
 	    ;;
 	'chg_lst' )
 	    local CHGLST=`echo $LINE | awk -F':' '{print $3}'`
